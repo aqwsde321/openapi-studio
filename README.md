@@ -69,7 +69,7 @@ npm에 올리면 jsDelivr·unpkg CDN으로 바로 사용할 수 있습니다. �
 
 ```html
 <openapi-studio spec-url="/v3/api-docs" storage-key="my-backend"></openapi-studio>
-<script src="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.0/dist/openapi-studio.standalone.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.2/dist/openapi-studio.standalone.js"></script>
 ```
 
 Mermaid를 켜면 같은 CDN 경로의 `openapi-studio.mermaid.js`를 자동으로 사용합니다.
@@ -77,8 +77,8 @@ Mermaid를 켜면 같은 CDN 경로의 `openapi-studio.mermaid.js`를 자동으�
 파비콘도 함께 배포합니다(`dist/favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`).
 
 ```html
-<link rel="icon" href="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.1/dist/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.1/dist/apple-touch-icon.png">
+<link rel="icon" href="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.2/dist/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.2/dist/apple-touch-icon.png">
 ```
 
 ```sh
