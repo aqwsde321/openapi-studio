@@ -1,6 +1,6 @@
 {
   "name": "openapi-studio",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "description": "Embed OpenAPI documentation and runnable API scenarios in a backend page.",
   "license": "MIT",
