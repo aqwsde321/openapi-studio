@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import type { SavedApiScenario, ApiScenarioPreview, ApiScenarioResult, ApiScenarioInputRequest } from "../core/shared/workspace";
+import type { SavedApiScenario, ApiScenarioPreview, ApiScenarioInputRequest } from "../core/shared/workspace";
 import { stringifyScenario } from "../core/shared/scenario";
 import { BrowserWorkspace } from "../browser/workspace";
-import { downloadYaml } from "../browser/files";
 import { ApiDocumentation } from "./pages/api-testing/ui/ApiDocumentation";
 import { ApiTestingProviders } from "./pages/api-testing/ui/ApiTestingProviders";
+import { ScenarioWorkspace } from "./pages/api-testing/ui/ScenarioWorkspace";
+import { scenarioGroupPaths } from "./pages/api-testing/model/scenario-workspace";
 import { GlobalVariableMenu } from "./features/api-testing/configure-globals";
 import { RunInputModal } from "./features/api-testing/submit-run-input";
-import { ScenarioRunResult, runStatusName, DeleteAction } from "./entities/api-testing";
 
 const ignoreRunAction = () => {};
 const message = (error: unknown) => error instanceof Error ? error.message : String(error);
@@ -18,22 +18,23 @@ export function StudioApp({ workspace }: { workspace: BrowserWorkspace }) {
   const [tab, setTab] = useState<"docs" | "scenarios">("docs");
   const [scenarios, setScenarios] = useState<SavedApiScenario[]>([]);
   const [editor, setEditor] = useState<{ saved: SavedApiScenario; scenario: ApiScenarioPreview["scenario"] } | "new" | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [runSaved, setRunSaved] = useState<SavedApiScenario | null>(null);
+  const [groupPath, setGroupPath] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
-  const [preview, setPreview] = useState<ApiScenarioPreview | null>(null);
-  const [result, setResult] = useState<ApiScenarioResult | null>(null);
   const [pending, setPending] = useState<ApiScenarioInputRequest | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [importSource, setImportSource] = useState("");
   const [importPreview, setImportPreview] = useState<ApiScenarioPreview | null>(null);
   const [importError, setImportError] = useState("");
   const [importBusy, setImportBusy] = useState(false);
-  const [notice, setNotice] = useState("");
   const refresh = useCallback(async () => setScenarios(await bridge.listScenarios(project.id)), [bridge, project.id]);
+  const consumeRun = useCallback(() => setRunSaved(null), []);
   useEffect(() => { void refresh().catch(error => setError(message(error))); }, [refresh]);
   useEffect(() => {
-    if (!busy) return;
+    if (!busy) { setPending(null); return; }
     const timer = setInterval(() => setPending(workspace.pending?.request ?? null), 100);
     return () => clearInterval(timer);
   }, [busy, workspace]);
@@ -47,17 +48,13 @@ export function StudioApp({ workspace }: { workspace: BrowserWorkspace }) {
     setDirty(false); setEditor(null); setTab(next); setError("");
   };
   const edit = async (saved: SavedApiScenario) => {
-    try { setEditor({ saved, scenario: workspace.normalize(saved.source) }); setResult(null); setError(""); }
+    try { setEditor({ saved, scenario: workspace.normalize(saved.source) }); setGroupPath(saved.groupPath ?? []); setSelectedId(saved.id); setError(""); }
     catch (error) { setError(message(error)); }
   };
-  const run = async (saved: SavedApiScenario) => {
-    setBusy(true); setEditor(null); setDirty(false); setError(""); setResult(null); setNotice("");
-    try {
-      const next = await workspace.preview(saved.source); setPreview(next);
-      const done = await bridge.runScenario(scope, saved.source, {}, {}); setResult(done);
-      setNotice(`${saved.name} · ${runStatusName(done.status)}`);
-    } catch (error) { setError(message(error)); }
-    finally { setBusy(false); setPending(null); }
+  const create = () => { setEditor("new"); setGroupPath([]); setError(""); };
+  const openImport = () => { setImportOpen(true); setImportSource(""); setImportPreview(null); setImportError(""); };
+  const run = (saved: SavedApiScenario) => {
+    setSelectedId(saved.id); setRunSaved(saved); setEditor(null); setDirty(false); setError("");
   };
   return <ApiTestingProviders projectId={project.id} bridge={bridge}>
     <main className="api-testing-page studio-page">
@@ -75,20 +72,10 @@ export function StudioApp({ workspace }: { workspace: BrowserWorkspace }) {
       {tab === "docs" && <ApiDocumentation catalog={workspace.catalog} project={project} scope={scope} bridge={bridge} baseUrl={baseUrl} busy={busy} onBusy={setBusy} onRunAction={ignoreRunAction} />}
       {tab === "scenarios" && (editor ? <ApiDocumentation key={editor === "new" ? "new" : editor.saved.id} mode="compose" initialEdit={editor === "new" ? undefined : editor}
         catalog={workspace.catalog} project={project} scope={scope} bridge={bridge} baseUrl={baseUrl} busy={busy} onBusy={setBusy} onRunAction={ignoreRunAction}
-        onUnsavedChange={setDirty} onCloseComposer={() => { setEditor(null); setDirty(false); }} onSaved={refresh} onExecuteSaved={item => void run(item)} /> : <section aria-label="시나리오 작업 공간">
-        <div className="studio-scenario-toolbar"><h2>시나리오</h2><button className="api-primary" disabled={busy} onClick={() => { setEditor("new"); setError(""); }}>+ 새 시나리오</button><button disabled={busy} onClick={() => { setImportOpen(true); setImportSource(""); setImportPreview(null); setImportError(""); }}>YAML 가져오기</button><button disabled={busy} onClick={() => void refresh().catch(error => setError(message(error)))}>목록 새로고침</button></div>
-        {!scenarios.length && <div className="studio-empty"><h3>저장된 시나리오가 없습니다.</h3><p>API를 선택해 시나리오를 만들거나 기존 YAML을 가져오세요.</p></div>}
-        <div className="studio-scenario-list">{scenarios.map(saved => <article key={saved.id} aria-label={saved.name}>
-          <div><h3>{saved.name}</h3><small>{saved.draft ? "초안 · 설정 필요" : "저장됨"}</small></div>
-          <div className="api-actions"><button disabled={busy} onClick={() => void edit(saved)}>수정</button><button disabled={busy} onClick={() => void run(saved)}>실행</button><button disabled={busy} onClick={() => downloadYaml(saved.name, stringifyScenario(workspace.normalize(saved.source), false, undefined, { [scope.serverId]: project.servers[0].name }))}>YAML 내보내기</button>
-          <DeleteAction label={`${saved.name} 삭제`} text="삭제" disabled={busy} description="이 브라우저에 저장된 시나리오를 삭제합니다." onDelete={async () => { try { await bridge.deleteScenario(project.id, saved.id, saved.updatedAt); await refresh(); } catch (error) { setError(message(error)); } }} /></div>
-        </article>)}</div>
-        {notice && <p role="status">{notice}</p>}
-        {busy && <p role="status">시나리오 실행 중…</p>}
-        {preview && !result && !busy && (preview.issues.length || preview.executionIssues?.length) ? <ul className="api-warning">{[...preview.issues, ...(preview.executionIssues ?? [])].map((issue,index) => <li key={index}>{issue}</li>)}</ul> : null}
-        {result && <ScenarioRunResult result={result} preview={preview} catalogs={{ [scope.serverId]: workspace.catalog }} bindings={{}} focusRequest={null} />}
-      </section>)}
-      {pending && <RunInputModal key={pending.requestId} request={pending} scope={scope} bridge={bridge} onSubmitted={() => setPending(null)} onCancel={() => workspace.cancel()} />}
+        sidebarGroupPath={groupPath} sidebarGroupPaths={scenarioGroupPaths(scenarios)} onSidebarGroupPathChange={setGroupPath} onNewScenario={create} sidebarMetadata={{ groupPath, ...(editor !== "new" && editor.saved.tags ? { tags: editor.saved.tags } : {}) }}
+        onUnsavedChange={setDirty} onCloseComposer={() => { setEditor(null); setDirty(false); }} onSaved={async saved => { await refresh(); setSelectedId(saved.id); }} onExecuteSaved={run} />
+        : <ScenarioWorkspace workspace={workspace} scenarios={scenarios} selectedId={selectedId} busy={busy} runSaved={runSaved} onBusy={setBusy} onSelect={setSelectedId} onCreate={create} onEdit={saved => void edit(saved)} onImport={openImport} onRefresh={refresh} onRunConsumed={consumeRun} />)}
+      {pending && <RunInputModal key={pending.requestId} request={pending} scope={scope} bridge={bridge} onSubmitted={() => setPending(null)} onCancel={() => { setPending(null); workspace.cancel(); }} />}
       {importOpen && <div className="api-confirm-dialog-backdrop"><section className="api-confirm-dialog studio-import" role="dialog" aria-modal="true" aria-label="YAML 가져오기">
         <h2>YAML 가져오기</h2><p>이 페이지의 백엔드 명세에 연결합니다. 파일을 선택하거나 YAML을 붙여넣으세요.</p>
         <input type="file" aria-label="시나리오 YAML 파일" accept=".yaml,.yml" disabled={importBusy} onChange={async event => {
@@ -106,8 +93,8 @@ export function StudioApp({ workspace }: { workspace: BrowserWorkspace }) {
           setImportBusy(true); setImportError("");
           try {
             const scenario = { ...importPreview.scenario, id: `scenario-${crypto.randomUUID()}` };
-            await workspace.save(stringifyScenario(scenario, true, undefined, { [scope.serverId]: project.servers[0].name }), undefined, Boolean(importPreview.issues.length));
-            await refresh(); setImportOpen(false); setNotice("시나리오를 가져왔습니다.");
+            const saved = await workspace.save(stringifyScenario(scenario, true, undefined, { [scope.serverId]: project.servers[0].name }), undefined, Boolean(importPreview.issues.length));
+            await refresh(); setSelectedId(saved.id); setImportOpen(false);
           } catch (error) { setImportError(message(error)); } finally { setImportBusy(false); }
         }}>{importPreview.issues.length ? "초안으로 저장" : "시나리오 저장"}</button>}</div>
       </section></div>}
