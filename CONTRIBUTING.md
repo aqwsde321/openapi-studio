@@ -101,6 +101,10 @@ git push --follow-tags   # 태그 push → Publish 워크플로 실행
 | 워크플로 | 실행 시점 | 내용 |
 |---|---|---|
 | `.github/workflows/ci.yml` | `main` push, PR | 빌드·단위·E2E |
-| `.github/workflows/publish.yml` | `v*` 태그 push | 태그와 package.json 버전 일치 확인 → 빌드·E2E → `npm publish` |
+| `.github/workflows/publish.yml` | `v*` 태그 push | 태그와 package.json 버전 일치 확인 → 빌드·단위·E2E → `npm publish --ignore-scripts` |
+
+배포 워크플로에서는 빌드와 단위 테스트를 한 번씩 실행하고, E2E까지 통과한 `dist/`를 그대로 배포합니다. `--ignore-scripts`는 이 배포 명령에만 적용해 `prepublishOnly`의 중복 빌드를 막습니다. 로컬에서 `npm publish`를 실행하면 기존처럼 `prepublishOnly`가 빌드와 단위 테스트를 실행합니다.
+
+`main` CI와 태그 배포는 독립적으로 실행됩니다. 같은 커밋의 CI가 먼저 성공한다는 보장이 없으므로 배포에서도 E2E를 유지합니다. 검증이 실패하면 npm에 배포하지 않습니다.
 
 배포가 `npm publish` 단계에서 E404로 실패하면 npmjs.com → 패키지 Settings → Trusted Publisher의 값(`aqwsde321` / `openapi-studio` / `publish.yml`)과 **Allow npm publish** 체크를 확인한 뒤, 실패한 실행을 Re-run 하세요.
