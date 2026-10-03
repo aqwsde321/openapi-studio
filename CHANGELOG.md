@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-10-04
+
 ### 변경
 - npm 배포 워크플로에서 빌드·단위 테스트·E2E를 통과한 결과물을 그대로 배포해 `prepublishOnly`의 중복 빌드를 제거했습니다. 로컬 배포의 사전 검증은 유지합니다.
 
@@ -48,7 +50,8 @@
 - OpenAPI 3.0/3.1, 백엔드 1개, JSON 요청 본문만 지원합니다.
 - 한 페이지에 Studio 하나만 사용할 수 있습니다.
 
-[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/aqwsde321/openapi-studio/compare/bd5a044...v0.1.2
 [0.1.0]: https://github.com/aqwsde321/openapi-studio/tree/bd5a044
