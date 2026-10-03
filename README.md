@@ -20,12 +20,12 @@ HTML 파일 하나를 만들고 아래 내용을 넣습니다.
 </head>
 <body style="margin:0">
   <openapi-studio spec-url="/v3/api-docs" storage-key="my-backend"></openapi-studio>
-  <script src="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.2/dist/openapi-studio.standalone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.3/dist/openapi-studio.standalone.js"></script>
 </body>
 </html>
 ```
 
-`spec-url`에는 OpenAPI 명세 주소를 넣습니다. 운영에서는 위처럼 버전(`@0.1.2`)을 고정하세요.
+`spec-url`에는 OpenAPI 명세 주소를 넣습니다. 운영에서는 위처럼 버전(`@0.1.3`)을 고정하세요.
 
 ### Spring Boot
 
@@ -64,8 +64,8 @@ API 설명에 ```` ```mermaid ```` 블록을 쓴다면 `mermaid` 속성을 추�
 ### 파비콘
 
 ```html
-<link rel="icon" href="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.2/dist/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.2/dist/apple-touch-icon.png">
+<link rel="icon" href="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.3/dist/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/npm/openapi-studio@0.1.3/dist/apple-touch-icon.png">
 ```
 
 ## 사용법

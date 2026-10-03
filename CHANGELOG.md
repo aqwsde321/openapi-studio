@@ -4,11 +4,16 @@
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-04
+
 ### 변경
 - 시나리오 화면을 검색·그룹 목록과 선택한 항목의 상세 화면으로 구성합니다. 실행 흐름과 최근 결과를 전환하고 시나리오별 최근 결과를 페이지에서 유지합니다.
 
 ### 추가
 - 시나리오 그룹 지정과 복제 기능을 제공합니다. 수정·YAML 내보내기·삭제는 선택한 항목의 상세 화면에서 실행합니다.
+
+### 문서
+- README를 사용 가이드로 정리하고 개발·배포 내용을 CONTRIBUTING.md로 분리했습니다.
 
 ## [0.1.2] - 2026-10-04
 
@@ -40,6 +45,7 @@
 - OpenAPI 3.0/3.1, 백엔드 1개, JSON 요청 본문만 지원합니다.
 - 한 페이지에 Studio 하나만 사용할 수 있습니다.
 
-[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/aqwsde321/openapi-studio/compare/bd5a044...v0.1.2
 [0.1.0]: https://github.com/aqwsde321/openapi-studio/tree/bd5a044
