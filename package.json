@@ -1,0 +1,58 @@
+{
+  "name": "openapi-studio",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Embed OpenAPI documentation and runnable API scenarios in a backend page.",
+  "license": "MIT",
+  "author": "aqwsde321",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aqwsde321/openapi-studio.git"
+  },
+  "homepage": "https://github.com/aqwsde321/openapi-studio#readme",
+  "bugs": {
+    "url": "https://github.com/aqwsde321/openapi-studio/issues"
+  },
+  "keywords": [
+    "openapi",
+    "swagger",
+    "api-testing",
+    "api-docs",
+    "scenario",
+    "spring-boot",
+    "web-component"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "dist/openapi-studio.standalone.js",
+  "jsdelivr": "dist/openapi-studio.standalone.js",
+  "unpkg": "dist/openapi-studio.standalone.js",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5175 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build && vite build --mode mermaid",
+    "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "node tests/run-e2e.mjs",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react": "5.2.0",
+    "dompurify": "3.4.15",
+    "mermaid": "11.17.2",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "swagger-ui-react": "5.32.15",
+    "tsx": "4.23.12",
+    "typescript": "5.9.3",
+    "vite": "7.3.6",
+    "yaml": "2.9.0",
+    "zod": "4.5.4"
+  }
+}

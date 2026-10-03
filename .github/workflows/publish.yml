@@ -1,0 +1,32 @@
+name: Publish
+
+# Push a version tag (npm version patch && git push --follow-tags) to publish that version.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing (OIDC); no npm token is stored in the repository
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - name: Tag matches package.json version
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          [ "$version" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME != package.json $version"; exit 1; }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # prepublishOnly builds and runs unit tests; E2E checks the built bundle before it ships.
+      - run: npm run build && npm run test:e2e
+      - run: npm publish

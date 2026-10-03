@@ -1,0 +1,28 @@
+name: 로그인 후 항목 생성·조회
+server: backend
+steps:
+  - name: 로그인
+    api: POST /auth/login
+    auth: none
+    extract:
+      - pointer: /accessToken
+        target: globals.accessToken
+  - name: 항목 생성
+    api: POST /items
+    auth: globals.accessToken
+    body:
+      name: 테스트 항목
+    expect:
+      - source: status
+        operator: equals
+        value: 201
+  - name: 항목 조회
+    api: GET /items/{id}
+    auth: globals.accessToken
+    pathParams:
+      id: "{{steps.2.response.body./id}}"
+    expect:
+      - source: body
+        pointer: /name
+        operator: equals
+        value: 테스트 항목

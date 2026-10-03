@@ -1,0 +1,14 @@
+{
+  "openapi":"3.0.3",
+  "info":{"title":"Demo Backend API","version":"1.0.0","description":"로그인 후 항목을 생성하고 응답 ID로 조회하는 시나리오를 시험하세요.\n\n```mermaid\nflowchart LR\n  login[로그인] --> create[항목 생성] --> read[항목 조회]\n```"},
+  "servers":[{"url":"/demo-api"}],
+  "tags":[{"name":"인증"},{"name":"항목"},{"name":"실행"}],
+  "paths":{
+    "/auth/login":{"post":{"tags":["인증"],"summary":"로그인","operationId":"login","responses":{"200":{"description":"토큰 발급","content":{"application/json":{"schema":{"type":"object","properties":{"accessToken":{"type":"string"}}},"example":{"accessToken":"demo-access-token"}}}}}}},
+    "/session":{"get":{"tags":["인증"],"summary":"세션 확인","operationId":"session","parameters":[{"in":"cookie","name":"studio-session","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"브라우저 쿠키 인증","content":{"application/json":{"schema":{"type":"object","properties":{"authenticated":{"type":"boolean"}}}}}}}}},
+    "/items":{"post":{"tags":["항목"],"summary":"항목 생성","operationId":"createItem","security":[{"bearerAuth":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","required":["name"],"properties":{"name":{"type":"string"}}},"example":{"name":"첫 항목"}}}},"responses":{"201":{"description":"항목 생성 완료","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"}}},"example":{"id":"1","name":"첫 항목"}}}}}}},
+    "/items/{id}":{"get":{"tags":["항목"],"summary":"항목 조회","operationId":"getItem","security":[{"bearerAuth":[]}],"parameters":[{"in":"path","name":"id","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"항목 반환","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"}}},"example":{"id":"1","name":"첫 항목"}}}}}}},
+    "/slow":{"get":{"tags":["실행"],"summary":"느린 요청","responses":{"200":{"description":"응답 완료"}}}}
+  },
+  "components":{"securitySchemes":{"bearerAuth":{"type":"http","scheme":"bearer"}}}
+}

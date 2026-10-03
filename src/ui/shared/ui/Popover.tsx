@@ -1,0 +1,43 @@
+import { useEffect, useId, useRef, useState } from "react";
+import type { ReactNode } from "react";
+
+type Props = {
+  label: string;
+  children: ReactNode;
+  disabled?: boolean;
+  /** Increment to open the popover from outside (e.g. "set this global" links). */
+  openRequest?: number;
+  className?: string;
+  /** Shorter visible text for the trigger; `label` then stays its accessible name. */
+  triggerText?: ReactNode;
+  triggerClassName?: string;
+  panelClassName?: string;
+};
+
+/** Non-modal disclosure: outside click, focus leaving, and Escape dismiss it. */
+export function Popover({ label, children, disabled = false, openRequest = 0, className, triggerText, triggerClassName, panelClassName }: Props) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const id = useId();
+  useEffect(() => { if (openRequest && !disabled) setOpen(true); }, [openRequest]);
+  useEffect(() => {
+    if (!open) return;
+    panel.current?.focus();
+    const outside = (event: Event) => { if (event.target instanceof Node && !root.current?.contains(event.target)) setOpen(false); };
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { event.preventDefault(); setOpen(false); trigger.current?.focus(); } };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("focusin", outside);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", outside); document.removeEventListener("focusin", outside); document.removeEventListener("keydown", escape); };
+  }, [open]);
+  useEffect(() => { if (disabled) setOpen(false); }, [disabled]);
+  return <div className={["shared-popover", className].filter(Boolean).join(" ")} ref={root}>
+    <button type="button" ref={trigger} className={triggerClassName} disabled={disabled} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? id : undefined} aria-label={triggerText === undefined ? undefined : label} onClick={() => setOpen(!open)}>{triggerText ?? label}</button>
+    {open && <div id={id} ref={panel} role="dialog" aria-label={label} tabIndex={-1} className={["shared-popover-panel", panelClassName].filter(Boolean).join(" ")} data-scroll="light">
+      <button type="button" className="shared-popover-close" aria-label={`${label} 닫기`} onClick={() => { setOpen(false); trigger.current?.focus(); }}>×</button>
+      {children}
+    </div>}
+  </div>;
+}

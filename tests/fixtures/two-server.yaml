@@ -1,0 +1,66 @@
+id: inquiry/create-and-answer
+name: 회원 문의 등록부터 관리자 답변 확인
+description: |
+  회원이 문의를 등록하고 관리자가 답변한 뒤,
+  회원이 조회한 문의에 작성한 답변이 표시되는지 검증합니다.
+steps:
+  - name: 회원 로그인
+    server: member
+    api: POST /auth/login
+    inputs:
+      - { name: memberLoginId, label: 회원 아이디 }
+      - { name: memberPassword, label: 회원 비밀번호 }
+    body:
+      loginId: "{{inputs.memberLoginId}}"
+      password: "{{inputs.memberPassword}}"
+    expect:
+      - { source: status, operator: equals, value: 200 }
+    extract:
+      - { pointer: /accessToken, target: globals.memberAccessToken }
+
+  - name: 회원 문의 등록
+    server: member
+    api: POST /inquiries
+    auth: globals.memberAccessToken
+    body: { title: 테스트 문의, content: 배송 일정 문의 }
+    expect:
+      - { source: status, operator: equals, value: 201 }
+
+  - name: 관리자 로그인
+    server: admin
+    api: POST /auth/login
+    inputs:
+      - { name: adminLoginId, label: 관리자 아이디 }
+      - { name: adminPassword, label: 관리자 비밀번호 }
+    body:
+      loginId: "{{inputs.adminLoginId}}"
+      password: "{{inputs.adminPassword}}"
+    expect:
+      - { source: status, operator: equals, value: 200 }
+    extract:
+      - { pointer: /accessToken, target: globals.adminAccessToken }
+
+  - name: 관리자 문의 목록 조회
+    server: admin
+    api: GET /inquiries
+    auth: globals.adminAccessToken
+    expect:
+      - { source: status, operator: equals, value: 200 }
+
+  - name: 관리자 답변 등록
+    server: admin
+    api: 'POST /inquiries/{id}/answers'
+    auth: globals.adminAccessToken
+    pathParams: { id: "{{steps.2.response.body./id}}" }
+    body: { content: 테스트 답변입니다 }
+    expect:
+      - { source: status, operator: equals, value: 201 }
+
+  - name: 회원 문의 답변 확인
+    server: member
+    api: 'GET /inquiries/{id}'
+    auth: globals.memberAccessToken
+    pathParams: { id: "{{steps.2.response.body./id}}" }
+    expect:
+      - { source: status, operator: equals, value: 200 }
+      - { source: body, pointer: /answer/content, operator: equals, value: 테스트 답변입니다 }

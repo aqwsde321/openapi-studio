@@ -1,0 +1,118 @@
+.openapi-studio {
+  /* ---- font / family ---- */
+  --ck-font-display:  Verdana, "Apple SD Gothic Neo", sans-serif;
+  --ck-font-ui:
+    "Helvetica Neue", Helvetica, "Apple SD Gothic Neo", "Malgun Gothic",
+    sans-serif;
+  --ck-font-mono:  ui-monospace, monospace;
+
+  /* ---- color / surface · hairline ---- */
+  --ck-color-canvas: #ffffff;
+  --ck-color-surface-subtle: #fafbfc;
+  --ck-color-surface-hover: #f7f9fa;
+  --ck-color-surface-hover-strong: #f0f3f5;
+  --ck-color-surface-nested: #fcfdfe;
+  --ck-color-brand-plate: #f8f8f8;
+  --ck-color-line-strong: #d8dde2;
+  --ck-color-line: #e4e7ea;
+  --ck-color-line-soft: #edf0f2;
+  --ck-color-line-faint: #f3f5f7;
+
+  /* ---- color / text ---- */
+  --ck-color-text-ink: #14181c;
+  --ck-color-text-body: #3d4650;
+  --ck-color-text-secondary: #5a646e;
+  --ck-color-text-mute: #8a939c;
+  --ck-color-text-mute-soft: #98a0a8;
+  --ck-color-text-disabled: #a6aeb5;
+  --ck-color-text-number: #bfc6cc;
+
+  /* ---- color / accent (blue) ---- */
+  --ck-color-blue: #3d8ce0;
+  --ck-color-blue-action: #1f63ae;
+  --ck-color-blue-action-hover: #17538f;
+  --ck-color-blue-tint: #edf4fc;
+  --ck-color-blue-tint-soft: #f5f9fe;
+  --ck-color-blue-line: #b9d4f1;
+  --ck-color-blue-on-dark: #7fb0e8;
+
+  /* ---- color / status ---- */
+  --ck-color-pass: #0e8a5f;
+  --ck-color-pass-tint: #ecfaf3;
+  --ck-color-pass-line: #a7e3c6;
+  --ck-color-fail: #de3b45;
+  --ck-color-fail-ink: #b32318;
+  --ck-color-fail-tint: #fff3f3;
+  --ck-color-wait: #ad6800;
+  --ck-color-wait-ink: #96690c;
+  --ck-color-wait-tint: #fff8e8;
+  --ck-color-idle: #d3d8dd;
+
+  /* ---- color / dark surface (dock · console) ---- */
+  --ck-color-dark: #14181c;
+  --ck-color-dark-line: #262e35;
+  --ck-color-dark-active: #2b333b;
+  --ck-color-dark-disabled: #4a545d;
+  --ck-color-dark-text: #e7eaed;
+  --ck-color-dark-mute: #98a4ae;
+  --ck-color-log-pass: #7fd8a6;
+  --ck-color-log-wait: #ebc46b;
+  --ck-color-log-fail: #f09b92;
+
+  /* ---- dim / space scale (2px 배수) ---- */
+  --ck-dim-space-2: 2px;
+  --ck-dim-space-4: 4px;
+  --ck-dim-space-6: 6px;
+  --ck-dim-space-8: 8px;
+  --ck-dim-space-10: 10px;
+  --ck-dim-space-12: 12px;
+  --ck-dim-space-14: 14px;
+  --ck-dim-space-18: 18px;
+  --ck-dim-space-22: 22px;
+  --ck-dim-space-26: 26px;
+  --ck-dim-space-32: 32px;
+  --ck-dim-space-44: 44px;
+  --ck-dim-space-120: 120px;
+
+  /* ---- dim / padding presets ---- */
+  --ck-dim-pad-row: 13px 12px;
+  --ck-dim-pad-panel: 18px 12px;
+  --ck-dim-pad-modal: 22px 24px;
+  --ck-dim-pad-page: 44px 26px 128px;
+
+  /* ---- dim / border radius ---- */
+  --ck-dim-radius-none: 0px;
+  --ck-dim-radius-base: 4px;
+  --ck-dim-radius-float: 6px;
+  --ck-dim-radius-pill: 999px;
+
+  /* ---- dim / control height ---- */
+  --ck-dim-h-22: 22px;
+  --ck-dim-h-26: 26px;
+  --ck-dim-h-28: 28px;
+  --ck-dim-h-30: 30px;
+  --ck-dim-h-34: 34px;
+  --ck-dim-h-46: 46px;
+
+  /* ---- fx / shadow (떠 있는 요소 전용) ---- */
+  --ck-fx-shadow-dock: 0 14px 30px -14px rgba(20, 24, 28, 0.55);
+  --ck-fx-shadow-float: 0 12px 28px -16px rgba(20, 24, 28, 0.4);
+  --ck-fx-shadow-pin: 0 6px 14px -8px rgba(20, 24, 28, 0.6);
+  --ck-fx-shadow-none: none;
+
+  /* ---- fx / overlay · hairline · motion ---- */
+  --ck-fx-overlay: rgba(20, 24, 28, 0.24);
+  --ck-fx-hairline: 1px solid #e4e7ea;
+  --ck-fx-hairline-row: 1px solid #edf0f2;
+  --ck-fx-motion-enter: 180ms ease;
+  --ck-fx-motion-enter-dock: 260ms ease;
+  --ck-fx-motion-state: 120ms ease;
+  --ck-fx-motion-knob: 140ms ease;
+  --ck-fx-motion-blink: 1s infinite;
+
+  /* ---- icon / size (Material Symbols Rounded · wght 400) ---- */
+  --ck-icon-size-13: 13px;
+  --ck-icon-size-16: 16px;
+  --ck-icon-size-18: 18px;
+  --ck-icon-size-21: 21px;
+}
