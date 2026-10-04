@@ -36,6 +36,7 @@
     "build": "npm run typecheck && vite build && vite build --mode mermaid",
     "test": "tsx --test tests/*.test.ts",
     "test:e2e": "node tests/run-e2e.mjs",
+    "hooks:install": "node scripts/install-hooks.mjs",
     "prepublishOnly": "npm run build && npm test"
   },
   "devDependencies": {

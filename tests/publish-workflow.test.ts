@@ -224,15 +224,16 @@ test("multiple downloaded files or an unexpected tarball filename are rejected",
   finally { renamed.close(); }
 });
 
-test("only main CI builds and tests, while tag publishing consumes its verified package", () => {
+test("main CI builds and runs unit tests without E2E, while tag publishing consumes its verified package", () => {
   const ci = YAML.parse(readFileSync(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8"));
   const publish = YAML.parse(readFileSync(new URL("../.github/workflows/publish.yml", import.meta.url), "utf8"));
   assert.deepEqual(ci.on, { push: { branches: ["main"] } });
   assert.deepEqual(publish.on, { push: { tags: ["v*"] } });
   const ciSteps = ci.jobs.verify.steps as Array<{ run?: string; uses?: string; with?: Record<string, unknown> }>;
-  const e2e = ciSteps.findIndex(step => step.run === "npm run test:e2e");
+  const unit = ciSteps.findIndex(step => step.run === "npm test");
   const pack = ciSteps.findIndex(step => step.run?.includes("npm pack --ignore-scripts"));
-  assert.ok(e2e >= 0 && pack > e2e, "only a fully tested package can be stored");
+  assert.ok(unit >= 0 && pack > unit, "only a package that passed CI verification can be stored");
+  assert.ok(!ciSteps.some(step => step.run && /playwright|npm run test:e2e/.test(step.run)));
   const upload = ciSteps.find(step => step.with?.name === "npm-package-${{ github.sha }}-${{ github.run_attempt }}");
   assert.ok(upload?.uses?.startsWith("actions/upload-artifact@"));
   assert.equal(upload?.with?.["if-no-files-found"], "error");

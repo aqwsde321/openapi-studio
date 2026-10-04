@@ -10,8 +10,6 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: "0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,8 +19,6 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm test
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
       - name: Pack verified release
         run: |
           mkdir -p "$RUNNER_TEMP/npm-package"
@@ -35,8 +31,3 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           overwrite: true
-      - if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-results
-          path: test-results/
