@@ -2,6 +2,22 @@ import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
 const yaml = readFileSync(new URL("../../demo/scenario.yaml", import.meta.url), "utf8");
+const iconAssets = "https://studio-assets.example.test/npm/openapi-studio@9.8.7/dist/";
+async function openFaviconPage(page: Page, icons = "") {
+  await page.route(`${iconAssets}**`, route => {
+    const file = new URL(route.request().url()).pathname.split("/").at(-1)!;
+    const contentType = file.endsWith(".js") ? "application/javascript; charset=utf-8" : file.endsWith(".svg") ? "image/svg+xml" : "image/png";
+    return route.fulfill({ contentType, body: readFileSync(new URL(`../../dist/${file}`, import.meta.url)) });
+  });
+  await page.route("**/favicon-test.html", route => route.fulfill({
+    contentType: "text/html",
+    body: `<!doctype html><html><head><meta charset="UTF-8">${icons}</head><body>
+      <openapi-studio spec-url="/demo/openapi.json"></openapi-studio>
+      <script src="${iconAssets}openapi-studio.standalone.js"></script>
+    </body></html>`,
+  }));
+  await page.goto("/favicon-test.html");
+}
 async function importScenario(page: Page, source: string) {
   await page.getByRole("tab", { name: /시나리오/ }).click();
   await page.getByRole("button", { name: "YAML 가져오기", exact: true }).click();
@@ -46,6 +62,40 @@ test("<openapi-studio> tag mounts from attributes alone and unmounts on removal"
   await page.locator("openapi-studio").evaluate(element => element.remove());
   await expect.poll(() => page.locator("style[data-openapi-studio]").count()).toBe(0);
   expect(errors).toEqual([]);
+});
+test("automatic icons use the script's CDN version and are removed and recreated with Studio", async ({ page }) => {
+  await openFaviconPage(page);
+  await expect(page.getByRole("heading", { name: "Demo Backend API 1.0.0", exact: true })).toBeVisible();
+  const icons = page.locator('head link[data-openapi-studio="favicon"]');
+  await expect(icons).toHaveCount(2);
+  await expect(page.locator('head link[data-openapi-studio="favicon"][rel="icon"]')).toHaveAttribute("href", `${iconAssets}favicon.svg`);
+  await expect(page.locator('head link[rel="apple-touch-icon"]')).toHaveAttribute("href", `${iconAssets}apple-touch-icon.png`);
+  await page.locator("openapi-studio").evaluate(element => element.remove());
+  await expect(icons).toHaveCount(0);
+  await page.evaluate(() => {
+    const studio = document.createElement("openapi-studio");
+    studio.setAttribute("spec-url", "/demo/openapi.json");
+    document.body.append(studio);
+  });
+  await expect(page.getByRole("heading", { name: "Demo Backend API 1.0.0", exact: true })).toBeVisible();
+  await expect(icons).toHaveCount(2);
+});
+for (const rel of ["shortcut ICON", "apple-touch-icon", "mask-icon"]) {
+  test(`automatic icons preserve the host's ${rel} icon without adding mixed branding`, async ({ page }) => {
+    await openFaviconPage(page, `<link rel="${rel}" href="/host-icon.svg" data-host-icon>`);
+    await expect(page.getByRole("heading", { name: "Demo Backend API 1.0.0", exact: true })).toBeVisible();
+    await expect(page.locator("head link[data-host-icon]")).toHaveAttribute("href", "/host-icon.svg");
+    await expect(page.locator('head link[data-openapi-studio="favicon"]')).toHaveCount(0);
+    await page.locator("openapi-studio").evaluate(element => element.remove());
+    await expect(page.locator("style[data-openapi-studio]")).toHaveCount(0);
+    await expect(page.locator("head link[data-host-icon]")).toHaveCount(1);
+  });
+}
+test("a failed Studio initialization does not add icons to the host page", async ({ page }) => {
+  await page.route("**/demo/openapi.json", route => route.fulfill({ status: 503, body: "Unavailable" }));
+  await openFaviconPage(page);
+  await expect(page.getByRole("alert")).toHaveText("명세를 불러오지 못했습니다 (HTTP 503)");
+  await expect(page.locator('head link[data-openapi-studio="favicon"]')).toHaveCount(0);
 });
 test("Mermaid is off by default and descriptions keep the diagram source as code", async ({ page }) => {
   const calls: string[] = []; page.on("request", request => calls.push(request.url()));

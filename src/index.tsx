@@ -4,6 +4,7 @@ import { readOpenApi } from "./core/openapi";
 import { resolveConfiguration, type StudioOptions } from "./browser/config";
 import { StudioStorage } from "./browser/storage";
 import { BrowserWorkspace } from "./browser/workspace";
+import { installFavicon } from "./browser/favicon";
 import swaggerStyles from "swagger-ui-react/swagger-ui.css?inline";
 import apiStyles from "./ui/pages/api-testing/ui/api-testing.css?inline";
 import popoverStyles from "./ui/styles/popover.css?inline";
@@ -15,7 +16,7 @@ import { configureMermaid } from "./ui/pages/api-testing/lib/mermaid-engine";
 export type { StudioOptions } from "./browser/config";
 export type StudioHandle = { destroy(): void };
 let mounted = false;
-// Captured while the standalone script runs so the Mermaid bundle can be found beside it.
+// Captured while the standalone script runs so companion assets can be found beside it.
 const scriptUrl = document.currentScript instanceof HTMLScriptElement ? document.currentScript.src : "";
 
 function mermaidSource(option: StudioOptions["mermaid"]): string | undefined {
@@ -56,10 +57,11 @@ export async function init(options: StudioOptions): Promise<StudioHandle> {
     const storage = await StudioStorage.open(config.key);
     workspace = new BrowserWorkspace(config, catalog, storage);
     const root = createRoot(element); root.render(<StudioApp workspace={workspace} />);
+    const removeFavicon = installFavicon(scriptUrl);
     let destroyed = false;
     return { destroy() {
       if (destroyed) return; destroyed = true;
-      workspace?.destroy(); root.unmount(); element.classList.remove("openapi-studio"); style.remove(); configureMermaid(undefined); mounted = false;
+      workspace?.destroy(); root.unmount(); element.classList.remove("openapi-studio"); style.remove(); removeFavicon(); configureMermaid(undefined); mounted = false;
     } };
   } catch (error) {
     workspace?.destroy(); configureMermaid(undefined); mounted = false;

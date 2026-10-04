@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-10-04
+
+### 추가
+- 기존 아이콘 링크가 없는 페이지에 Studio 스크립트와 같은 경로의 파비콘을 자동으로 추가합니다. Studio를 제거하면 자동으로 추가한 링크만 정리합니다.
+
+### 문서
+- 프레임워크 공통 HTML 사용법과 AI 설정 프롬프트, npm 링크와 배지를 추가했습니다. CDN 예시는 `@latest`를 사용합니다.
+
 ## [0.1.5] - 2026-10-04
 
 ### 변경
@@ -56,7 +64,8 @@
 - OpenAPI 3.0/3.1, 백엔드 1개, JSON 요청 본문만 지원합니다.
 - 한 페이지에 Studio 하나만 사용할 수 있습니다.
 
-[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.2...v0.1.3
