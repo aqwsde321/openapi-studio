@@ -89,22 +89,24 @@ studio.destroy();
 
 ## 배포
 
-`v*` 태그를 push하면 GitHub Actions가 검증 후 npm에 배포합니다. npm 인증은 trusted publishing(OIDC)이라 저장소에 토큰이 없습니다.
+PR 없이 `main`에 직접 push합니다. `main` CI가 빌드·단위 테스트·E2E를 통과하면 배포용 npm 패키지를 보관합니다. `v*` 태그를 push하면 같은 커밋의 검증된 패키지를 받아 npm에 배포합니다. npm 인증은 trusted publishing(OIDC)이라 저장소에 토큰이 없습니다.
 
 ```sh
 npm version patch        # package.json 버전 변경 + 커밋 + v태그 생성
-git push --follow-tags   # 태그 push → Publish 워크플로 실행
+git push origin main --follow-tags   # main 검증 + 버전 태그 배포
 ```
 
 배포 전에 [CHANGELOG](CHANGELOG.md)의 `Unreleased`를 새 버전 제목으로 바꿔 함께 커밋하세요.
 
 | 워크플로 | 실행 시점 | 내용 |
 |---|---|---|
-| `.github/workflows/ci.yml` | `main` push, PR | 빌드·단위·E2E |
-| `.github/workflows/publish.yml` | `v*` 태그 push | 태그와 package.json 버전 일치 확인 → 빌드·단위·E2E → `npm publish --ignore-scripts` |
+| `.github/workflows/ci.yml` | `main` push | 빌드·단위·E2E → `npm pack --ignore-scripts` → 패키지 보관 |
+| `.github/workflows/publish.yml` | `v*` 태그 push | 태그와 package.json 버전 확인 → 같은 커밋의 성공한 CI 패키지 다운로드·확인 → npm 배포 |
 
-배포 워크플로에서는 빌드와 단위 테스트를 한 번씩 실행하고, E2E까지 통과한 `dist/`를 그대로 배포합니다. `--ignore-scripts`는 이 배포 명령에만 적용해 `prepublishOnly`의 중복 빌드를 막습니다. 로컬에서 `npm publish`를 실행하면 기존처럼 `prepublishOnly`가 빌드와 단위 테스트를 실행합니다.
+`main` CI의 `setup-node`는 lock 파일 기준으로 npm 다운로드 캐시를 사용합니다. 배포 워크플로는 이미 검증한 `.tgz`를 `npm publish --ignore-scripts`로 배포하므로 npm 설치·빌드·테스트를 반복하지 않습니다. 로컬에서 `npm publish`를 실행하면 기존처럼 `prepublishOnly`가 빌드와 단위 테스트를 실행합니다.
 
-`main` CI와 태그 배포는 독립적으로 실행됩니다. 같은 커밋의 CI가 먼저 성공한다는 보장이 없으므로 배포에서도 E2E를 유지합니다. 검증이 실패하면 npm에 배포하지 않습니다.
+`main`과 태그를 함께 push하면 배포가 같은 커밋의 CI 완료를 최대 10분 기다립니다. 다른 커밋이나 PR의 결과는 사용하지 않으며 CI가 실패·취소되면 배포도 중단됩니다. 기능 브랜치에만 있는 커밋의 태그는 배포할 수 없습니다.
+
+패키지 보관 기간은 7일입니다. 패키지가 없거나 만료되면 해당 커밋의 `main` CI를 Re-run 하고, 성공한 뒤 Publish를 Re-run 하세요. CI를 재실행할 때는 해당 실행 시도의 패키지만 사용합니다.
 
 배포가 `npm publish` 단계에서 E404로 실패하면 npmjs.com → 패키지 Settings → Trusted Publisher의 값(`aqwsde321` / `openapi-studio` / `publish.yml`)과 **Allow npm publish** 체크를 확인한 뒤, 실패한 실행을 Re-run 하세요.

@@ -7,29 +7,50 @@ on:
 
 permissions:
   contents: read
+  actions: read
   id-token: write # npm trusted publishing (OIDC); no npm token is stored in the repository
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: "0"
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
           registry-url: https://registry.npmjs.org
       - name: Tag matches package.json version
+        id: release
         run: |
           version="v$(node -p "require('./package.json').version")"
           [ "$version" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME != package.json $version"; exit 1; }
-      - run: npm ci
-      - run: npm run build
-      - run: npm test
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-      # Publish the verified bundle without running prepublishOnly a second time.
-      # Local npm publish still runs the build and unit tests through prepublishOnly.
-      - run: npm publish --ignore-scripts
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Wait for matching main CI
+        id: verified
+        uses: actions/github-script@v7
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        with:
+          script: |
+            const { waitForVerifiedPackage } = require('./.github/scripts/verified-package.cjs');
+            const verified = await waitForVerifiedPackage({
+              github, ...context.repo, sha: process.env.RELEASE_SHA, log: core.info,
+            });
+            core.setOutput('run-id', verified.runId);
+            core.setOutput('artifact-id', verified.artifactId);
+      - name: Download verified release
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.verified.outputs.run-id }}
+          artifact-ids: ${{ steps.verified.outputs.artifact-id }}
+          merge-multiple: true
+          path: release-package
+      - name: Check packed release
+        id: package
+        run: node .github/scripts/verified-package.cjs release-package >> "$GITHUB_OUTPUT"
+      - name: Publish verified release
+        env:
+          PACKAGE_TARBALL: ${{ steps.package.outputs.tarball }}
+        run: npm publish "$PACKAGE_TARBALL" --ignore-scripts

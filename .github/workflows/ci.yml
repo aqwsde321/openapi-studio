@@ -3,7 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   verify:
@@ -21,6 +23,18 @@ jobs:
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - name: Pack verified release
+        run: |
+          mkdir -p "$RUNNER_TEMP/npm-package"
+          npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/npm-package"
+      - name: Store verified release
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/npm-package/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
