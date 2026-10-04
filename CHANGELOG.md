@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-10-04
+
 ### 변경
 - PR 검증을 제거하고 `main` push에서 빌드·단위 테스트를 실행합니다. 태그 배포는 같은 커밋에서 검증한 npm 패키지를 재사용해 설치·빌드·테스트의 중복 실행을 제거합니다.
 - 개인 개발 단계의 E2E 검증을 로컬 `pre-push` 훅으로 옮깁니다. 협업 시작 전 GitHub Actions로 복원하는 기준을 개발 가이드에 기록합니다.
@@ -54,7 +56,8 @@
 - OpenAPI 3.0/3.1, 백엔드 1개, JSON 요청 본문만 지원합니다.
 - 한 페이지에 Studio 하나만 사용할 수 있습니다.
 
-[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/aqwsde321/openapi-studio/compare/bd5a044...v0.1.2
