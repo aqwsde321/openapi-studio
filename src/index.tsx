@@ -5,6 +5,7 @@ import { resolveConfiguration, type StudioOptions } from "./browser/config";
 import { StudioStorage } from "./browser/storage";
 import { BrowserWorkspace } from "./browser/workspace";
 import { installFavicon } from "./browser/favicon";
+import { fetchSpec, requestSpecAccount } from "./browser/spec-auth";
 import swaggerStyles from "swagger-ui-react/swagger-ui.css?inline";
 import apiStyles from "./ui/pages/api-testing/ui/api-testing.css?inline";
 import popoverStyles from "./ui/styles/popover.css?inline";
@@ -50,8 +51,7 @@ export async function init(options: StudioOptions): Promise<StudioHandle> {
   element.textContent = "API 명세를 불러오는 중…";
   let workspace: BrowserWorkspace | undefined;
   try {
-    const response = await fetch(specUrl, { credentials: options.credentials ?? "same-origin" });
-    if (!response.ok) throw new Error(`명세를 불러오지 못했습니다 (HTTP ${response.status})`);
+    const response = await fetchSpec(specUrl.href, options.credentials ?? "same-origin", request => requestSpecAccount(element, request));
     const catalog = readOpenApi(await response.text());
     const config = resolveConfiguration({ ...options, specUrl: response.url || specUrl.href }, catalog, window.location.href);
     const storage = await StudioStorage.open(config.key);

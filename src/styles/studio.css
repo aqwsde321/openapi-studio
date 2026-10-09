@@ -25,5 +25,11 @@
 .openapi-studio .app-icon { vertical-align:middle; flex-shrink:0; }
 .openapi-studio .loading-spinner { display:inline-flex; gap:6px; align-items:center; }
 .openapi-studio .shared-resize-handle { cursor:col-resize; width:6px; }
+.openapi-studio .studio-spec-auth { width:min(440px,100%); margin:auto; padding:32px 20px; }
+.openapi-studio .studio-spec-auth h1 { font-size:22px; }
+.openapi-studio .studio-spec-auth code { display:block; overflow-wrap:anywhere; color:#6b7c8f; }
+.openapi-studio .studio-spec-auth label { display:block; margin-top:16px; }
+.openapi-studio .studio-spec-auth input { display:block; width:100%; padding:10px; margin-top:6px; border:1px solid #a9bbce; border-radius:4px; }
+.openapi-studio .studio-spec-auth [role=alert] { color:#b42318; }
 @media(max-width:1100px) { .openapi-studio .studio-scenarios header.api-detail-heading { grid-template-columns:minmax(0,1fr); } .openapi-studio .studio-scenarios .api-detail-heading > .api-actions { grid-column:1; grid-row:3; justify-content:flex-start; margin:12px 0 0; } }
 @media(max-width:700px) { .openapi-studio .studio-page { padding:16px 12px; } .openapi-studio .studio-header { align-items:start; gap:8px; } .openapi-studio .studio-header h1 { font-size:20px; } .openapi-studio .studio-tabs > span { display:none; } .openapi-studio .studio-scenarios .api-detail-heading > .api-actions { gap:8px; } }

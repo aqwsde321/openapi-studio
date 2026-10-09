@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-10-10
+
+### 추가
+- OpenAPI 명세 서버가 HTTP Basic 인증을 요구하면 계정 입력 화면을 표시하고 인증 실패 시 재입력할 수 있습니다. 입력한 계정은 저장하지 않으며 API 호출 인증과 분리합니다.
+
 ## [0.1.6] - 2026-10-04
 
 ### 추가
@@ -64,7 +69,8 @@
 - OpenAPI 3.0/3.1, 백엔드 1개, JSON 요청 본문만 지원합니다.
 - 한 페이지에 Studio 하나만 사용할 수 있습니다.
 
-[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.3...v0.1.4
