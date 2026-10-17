@@ -22,12 +22,13 @@ type Props = {
   onEdit: (saved: SavedApiScenario) => void;
   onImport: () => void;
   onRefresh: () => Promise<void>;
+  onReloadProject: () => Promise<void>;
   onRunConsumed: () => void;
 };
 const errorText = (error: unknown) => error instanceof Error ? error.message : String(error);
 
 /** Searchable list and selected scenario detail; storage stays in the browser adapter. */
-export function ScenarioWorkspace({ workspace, scenarios, selectedId, busy, runSaved, onBusy, onSelect, onCreate, onEdit, onImport, onRefresh, onRunConsumed }: Props) {
+export function ScenarioWorkspace({ workspace, scenarios, selectedId, busy, runSaved, onBusy, onSelect, onCreate, onEdit, onImport, onRefresh, onReloadProject, onRunConsumed }: Props) {
   const { scope, project, baseUrl } = workspace.config;
   const bridge = workspace.bridge;
   const globalAccess = useGlobalVariableAccess();
@@ -46,7 +47,7 @@ export function ScenarioWorkspace({ workspace, scenarios, selectedId, busy, runS
   const live = useRef(true);
   const [width, setWidth] = useStoredWidth("scenario-list");
   const preview = current && checked?.id === current.id && checked.source === current.source ? checked.preview : null;
-  const selectedSnapshot = snapshot?.preview.scenario.id === current?.id ? snapshot : null;
+  const selectedSnapshot = snapshot?.preview.scenario.id === current?.id && (!current?.sourceUrl || snapshot?.source === current.source) ? snapshot : null;
   const filtered = useMemo(() => filterScenarios(scenarios, query, baseUrl), [scenarios, query, baseUrl]);
   const catalogs = useMemo(() => ({ [scope.serverId]: workspace.catalog }), [scope.serverId, workspace.catalog]);
   const serverNames = useMemo(() => Object.fromEntries(project.servers.map(server => [server.id, server.name])), [project.servers]);
@@ -72,7 +73,7 @@ export function ScenarioWorkspace({ workspace, scenarios, selectedId, busy, runS
       const issues = [...ready.issues, ...(ready.executionIssues ?? [])];
       if (issues.length) throw new Error(issues.join("\n"));
       const result = await bridge.runScenario(scope, current.source, {}, parseRunInputs(ready.scenario.inputs, inputs));
-      const next = { result, preview: ready, bindings: {}, completedAt: new Date().toISOString() };
+      const next = { result, preview: ready, source: current.source, bindings: {}, completedAt: new Date().toISOString() };
       writeLastRun(scope.projectId, scope.environmentId, current.id, next);
       if (live.current) { setSnapshot(next); setNotice(`${current.name} · ${runStatusName(result.status)}`); globalAccess.saved(); }
     } catch (error) { if (live.current) setError(errorText(error)); }
@@ -108,7 +109,7 @@ export function ScenarioWorkspace({ workspace, scenarios, selectedId, busy, runS
   };
   const refresh = async () => {
     setError("");
-    try { await onRefresh(); setRevision(value => value + 1); } catch (error) { setError(errorText(error)); }
+    try { await (workspace.config.scenariosUrl ? onReloadProject() : onRefresh()); setRevision(value => value + 1); } catch (error) { setError(errorText(error)); }
   };
   return <div ref={columns} className="api-columns api-scenarios api-scenario-run studio-scenarios" style={width === null ? undefined : { "--api-list-width": `${width}px` } as CSSProperties}>
     <aside aria-label="저장된 시나리오">
@@ -117,7 +118,7 @@ export function ScenarioWorkspace({ workspace, scenarios, selectedId, busy, runS
         <header><button type="button" className="api-sidebar-section-toggle" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}><span className="api-sidebar-section-label">시나리오<small>{filtered.items.length}{filtered.items.length !== scenarios.length ? ` / ${scenarios.length}` : ""}</small></span><Icon name="expand_more" size={18} className="api-sidebar-chevron" /></button><button type="button" className="api-sidebar-add" disabled={busy} onClick={onCreate}>+ 새 시나리오</button></header>
         {expanded && <ScenarioSidebarTree kind="scenario" expandAll={Boolean(query.trim())} items={filtered.items} reasons={filtered.reasons} selectedId={selectedId} disabled={busy} onSelect={item => onSelect(item.id)} />}
       </section>
-      <div className="studio-sidebar-tools"><button type="button" disabled={busy} onClick={onImport}>YAML 가져오기</button><button type="button" disabled={busy} onClick={() => void refresh()}>목록 새로고침</button></div>
+      <div className="studio-sidebar-tools"><button type="button" disabled={busy} onClick={onImport}>YAML 가져오기</button><button type="button" disabled={busy} onClick={() => void refresh()}>{workspace.config.scenariosUrl ? "프로젝트 다시 불러오기" : "목록 새로고침"}</button></div>
     </aside>
     {current ? <ScenarioDetail key={current.id} saved={current} preview={preview} snapshot={selectedSnapshot} catalogs={catalogs} serverNames={serverNames} inputs={inputs} busy={busy} checking={checking} running={running} error={error} notice={notice}
       onInput={(name, value) => setInputs(previous => ({ ...previous, [name]: value }))} onRun={() => void run()} onEdit={() => onEdit(current)} onDuplicate={() => void duplicate()} onDelete={remove}

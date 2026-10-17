@@ -24,6 +24,8 @@
   ],
   "files": [
     "dist",
+    "docs/scenarios.md",
+    "templates",
     "README.md",
     "LICENSE"
   ],

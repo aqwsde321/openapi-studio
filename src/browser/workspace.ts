@@ -7,13 +7,31 @@ import { docInputFromRequest } from "../core/shared/doc-inputs";
 import { StudioStorage } from "./storage";
 import type { resolveConfiguration } from "./config";
 import { pickYaml } from "./files";
+import { loadProjectScenarios } from "./project-scenarios";
 
 type Configuration = ReturnType<typeof resolveConfiguration>;
 export class BrowserWorkspace {
+  private projectScenarios: SavedApiScenario[] = [];
+  private projectLoad: AbortController | null = null;
   active: AbortController | null = null;
   pending: { request: ApiScenarioInputRequest; resolve: (value: Json | undefined) => void } | null = null;
   constructor(readonly config: Configuration, readonly catalog: ApiCatalog, readonly storage: Pick<StudioStorage, "read" | "update" | "close">) {}
   private idle() { if (this.active) throw new Error("실행 중에는 설정을 변경할 수 없습니다"); }
+  async reloadProjectScenarios(): Promise<void> {
+    this.idle();
+    if (!this.config.scenariosUrl) return;
+    if (this.projectLoad) throw new Error("프로젝트 시나리오를 불러오는 중입니다");
+    const controller = new AbortController(); this.projectLoad = controller;
+    try {
+      const items = await loadProjectScenarios(this.config.scenariosUrl, this.config.credentials, source => this.normalize(source),
+        { [this.config.scope.serverId]: this.config.project.servers[0].name }, controller.signal);
+      controller.signal.throwIfAborted(); this.idle();
+      this.projectScenarios = items;
+    } finally { this.projectLoad = null; }
+  }
+  private writable(id: string) {
+    if (id.startsWith("project:")) throw new Error("프로젝트 시나리오는 원본 YAML에서 수정하세요. 화면에서는 복제하여 브라우저에 저장할 수 있습니다.");
+  }
   normalize(source: string): Scenario {
     if (new TextEncoder().encode(source).byteLength > 1_000_000) throw new Error("YAML은 1MB 이하만 지원합니다");
     const scenario = parseScenario(source);
@@ -61,6 +79,7 @@ export class BrowserWorkspace {
     const preview = await this.preview(source);
     if (!draft && preview.issues.length) throw new Error(preview.issues.join("\n"));
     const scenario = preview.scenario;
+    this.writable(scenario.id);
     return this.storage.update(data => {
       const index = data.scenarios.findIndex(saved => saved.id === scenario.id);
       const previous = data.scenarios[index];
@@ -117,11 +136,12 @@ export class BrowserWorkspace {
     setRequestAuth: async (_scope, name) => { this.idle(); await this.storage.update(data => { data.requestAuth = name; }); },
     getDocInputs: async () => (await this.storage.read()).docInputs,
     forgetDocInput: async (_scope, key) => { await this.storage.update(data => { delete data.docInputs[key]; }); },
-    listScenarios: async () => (await this.storage.read()).scenarios,
+    listScenarios: async () => [...this.projectScenarios, ...(await this.storage.read()).scenarios],
     previewScenario: async (_scope, source) => this.preview(source),
     saveScenario: async (_scope, source, _bindings, expected, metadata) => this.save(source, expected, false, metadata),
     saveScenarioDraft: async (_scope, source, _bindings, expected, metadata) => this.save(source, expected, true, metadata),
     deleteScenario: async (_project, id, expected) => {
+      this.writable(id);
       this.idle(); await this.storage.update(data => {
         const item = data.scenarios.find(item => item.id === id);
         if (item && item.updatedAt !== expected) throw new Error("시나리오가 변경되었습니다. 목록을 새로고침하세요.");
@@ -156,5 +176,5 @@ export class BrowserWorkspace {
     },
     readScenarioFile: pickYaml,
   } as ApiTestingBridge;
-  destroy() { this.cancel(); this.storage.close(); }
+  destroy() { this.projectLoad?.abort(); this.cancel(); this.storage.close(); }
 }

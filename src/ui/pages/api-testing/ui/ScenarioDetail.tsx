@@ -49,10 +49,11 @@ export function ScenarioDetail({ saved, preview, snapshot, catalogs, serverNames
       <div><h2 title={saved.name}>{saved.name}</h2><p className="api-description">{preview?.scenario.description ?? ""}</p></div>
       <div className="api-actions api-detail-actions">
         <span className="api-action-group" role="group" aria-label="실행"><button type="button" className="api-primary" disabled={busy || checking || !canRun} onClick={onRun}>{running ? "실행 중…" : result ? "다시 실행" : "실행"}</button></span>
-        <span className="api-action-group" role="group" aria-label="편집"><button type="button" disabled={busy} onClick={onEdit}>수정</button><button type="button" disabled={busy || checking || !preview} onClick={onDuplicate}>복제</button></span>
-        <span className="api-action-group" role="group" aria-label="관리"><button type="button" disabled={busy} onClick={onExport}>YAML 내보내기</button><DeleteAction key={saved.id} label="시나리오 삭제" text="삭제" disabled={busy} description={`‘${saved.name}’을 이 브라우저에서 삭제합니다.`} onDelete={onDelete} /></span>
+        <span className="api-action-group" role="group" aria-label="편집">{!saved.sourceUrl && <button type="button" disabled={busy} onClick={onEdit}>수정</button>}<button type="button" disabled={busy || checking || !preview} onClick={onDuplicate}>{saved.sourceUrl ? "브라우저 사본 만들기" : "복제"}</button></span>
+        <span className="api-action-group" role="group" aria-label="관리"><button type="button" disabled={busy} onClick={onExport}>YAML 내보내기</button>{!saved.sourceUrl && <DeleteAction key={saved.id} label="시나리오 삭제" text="삭제" disabled={busy} description={`‘${saved.name}’을 이 브라우저에서 삭제합니다.`} onDelete={onDelete} />}</span>
       </div>
     </header>
+    {saved.sourceUrl && <p className="api-run-notice">프로젝트 YAML · <a href={saved.sourceUrl} target="_blank" rel="noreferrer">원본 파일</a><br />원본은 프로젝트에서 수정한 뒤 다시 불러오세요. 화면에서 수정하려면 브라우저 사본을 만드세요.</p>}
     {checking && <p role="status">시나리오를 확인하는 중…</p>}
     {preview && <>
       <section className="api-run-summary" aria-label="시나리오 실행 준비">

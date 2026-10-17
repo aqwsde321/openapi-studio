@@ -1,6 +1,6 @@
 import type { ApiScenarioPreview, ApiScenarioResult } from "../../../../core/shared/workspace";
 
-export type ScenarioLastRun = { result: ApiScenarioResult; preview: ApiScenarioPreview; bindings: Record<string, string>; completedAt: string };
+export type ScenarioLastRun = { result: ApiScenarioResult; preview: ApiScenarioPreview; source?: string; bindings: Record<string, string>; completedAt: string };
 const memory = new Map<string, ScenarioLastRun>();
 const keyFor = (project: string, environment: string, scenario: string) => `openapi-studio:last-run:${JSON.stringify([project, environment, scenario])}`;
 

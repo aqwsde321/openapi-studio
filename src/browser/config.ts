@@ -2,6 +2,7 @@ import type { ApiCatalog, ApiProject, ApiScope } from "../core/shared/workspace"
 export type StudioOptions = {
   element: string | HTMLElement;
   specUrl: string;
+  scenariosUrl?: string;
   storageKey?: string;
   baseUrl?: string;
   serverName?: string;
@@ -14,6 +15,9 @@ const object = (value: unknown): Record<string, any> => value && typeof value ==
 
 export function resolveConfiguration(options: StudioOptions, catalog: ApiCatalog, pageUrl: string) {
   const specUrl = new URL(options.specUrl, pageUrl);
+  const scenariosUrl = options.scenariosUrl === undefined ? undefined : new URL(options.scenariosUrl, pageUrl);
+  if (scenariosUrl && (!["http:", "https:"].includes(scenariosUrl.protocol) || scenariosUrl.username || scenariosUrl.password || !options.scenariosUrl?.trim()))
+    throw new Error("시나리오 목록 주소는 인증정보 없는 HTTP(S) 주소여야 합니다");
   if (!["http:", "https:"].includes(specUrl.protocol) || specUrl.username || specUrl.password) throw new Error("명세 주소는 HTTP(S) 주소여야 합니다");
   const spec = object(catalog.spec);
   if (!options.baseUrl && Object.values(object(spec.paths)).some(raw => {
@@ -34,5 +38,5 @@ export function resolveConfiguration(options: StudioOptions, catalog: ApiCatalog
   const key = options.storageKey?.trim() || specUrl.href;
   const scope: ApiScope = { projectId: `studio:${key}`, serverId, environmentId };
   const project: ApiProject = { id: scope.projectId, name: catalog.title || "OpenAPI Studio", servers: [{ id: serverId, name: options.serverName || "backend" }], environments: [{ id: environmentId, name: options.environmentName || "default", baseUrls: { [serverId]: base.href.replace(/\/$/, "") } }] };
-  return { key, scope, project, baseUrl: project.environments[0].baseUrls[serverId], credentials: options.credentials ?? "same-origin" };
+  return { key, scope, project, baseUrl: project.environments[0].baseUrls[serverId], credentials: options.credentials ?? "same-origin", scenariosUrl: scenariosUrl?.href };
 }

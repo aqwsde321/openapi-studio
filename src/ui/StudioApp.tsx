@@ -21,7 +21,10 @@ export function StudioApp({ workspace }: { workspace: BrowserWorkspace }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [runSaved, setRunSaved] = useState<SavedApiScenario | null>(null);
   const [groupPath, setGroupPath] = useState<string[]>([]);
-  const [busy, setBusy] = useState(false);
+  const [runningBusy, setBusy] = useState(false);
+  const [projectLoading, setProjectLoading] = useState(false);
+  const [projectError, setProjectError] = useState("");
+  const busy = runningBusy || projectLoading;
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState<ApiScenarioInputRequest | null>(null);
@@ -32,7 +35,14 @@ export function StudioApp({ workspace }: { workspace: BrowserWorkspace }) {
   const [importBusy, setImportBusy] = useState(false);
   const refresh = useCallback(async () => setScenarios(await bridge.listScenarios(project.id)), [bridge, project.id]);
   const consumeRun = useCallback(() => setRunSaved(null), []);
-  useEffect(() => { void refresh().catch(error => setError(message(error))); }, [refresh]);
+  const reloadProject = useCallback(async () => {
+    setProjectLoading(true); setProjectError("");
+    try { await workspace.reloadProjectScenarios(); }
+    catch (error) { setProjectError(`프로젝트 시나리오를 갱신하지 못했습니다. 기존 목록을 유지합니다. ${message(error)}`); }
+    finally { setProjectLoading(false); }
+    await refresh();
+  }, [workspace, refresh]);
+  useEffect(() => { void reloadProject().catch(error => setError(message(error))); }, [reloadProject]);
   useEffect(() => {
     if (!busy) { setPending(null); return; }
     const timer = setInterval(() => setPending(workspace.pending?.request ?? null), 100);
@@ -65,16 +75,18 @@ export function StudioApp({ workspace }: { workspace: BrowserWorkspace }) {
       <nav className="studio-tabs" aria-label="작업 탭">
         <button type="button" role="tab" aria-selected={tab === "docs"} disabled={busy} onClick={() => navigate("docs")}>API 문서 <small>{workspace.catalog.operations.length}</small></button>
         <button type="button" role="tab" aria-selected={tab === "scenarios"} disabled={busy} onClick={() => navigate("scenarios")}>시나리오 <small>{scenarios.length}</small></button>
-        <span>이 브라우저에 저장</span>
-        {busy && <button type="button" onClick={() => workspace.cancel()}>실행 중단</button>}
+        <span>{workspace.config.scenariosUrl ? "프로젝트 YAML · 브라우저 사본" : "이 브라우저에 저장"}</span>
+        {runningBusy && <button type="button" onClick={() => workspace.cancel()}>실행 중단</button>}
       </nav>
       {error && <p className="api-warning" role="alert">{error}</p>}
+      {projectLoading && <p role="status">프로젝트 시나리오를 불러오는 중…</p>}
+      {projectError && <p className="api-warning" role="alert">{projectError}</p>}
       {tab === "docs" && <ApiDocumentation catalog={workspace.catalog} project={project} scope={scope} bridge={bridge} baseUrl={baseUrl} busy={busy} onBusy={setBusy} onRunAction={ignoreRunAction} />}
       {tab === "scenarios" && (editor ? <ApiDocumentation key={editor === "new" ? "new" : editor.saved.id} mode="compose" initialEdit={editor === "new" ? undefined : editor}
         catalog={workspace.catalog} project={project} scope={scope} bridge={bridge} baseUrl={baseUrl} busy={busy} onBusy={setBusy} onRunAction={ignoreRunAction}
         sidebarGroupPath={groupPath} sidebarGroupPaths={scenarioGroupPaths(scenarios)} onSidebarGroupPathChange={setGroupPath} onNewScenario={create} sidebarMetadata={{ groupPath, ...(editor !== "new" && editor.saved.tags ? { tags: editor.saved.tags } : {}) }}
         onUnsavedChange={setDirty} onCloseComposer={() => { setEditor(null); setDirty(false); }} onSaved={async saved => { await refresh(); setSelectedId(saved.id); }} onExecuteSaved={run} />
-        : <ScenarioWorkspace workspace={workspace} scenarios={scenarios} selectedId={selectedId} busy={busy} runSaved={runSaved} onBusy={setBusy} onSelect={setSelectedId} onCreate={create} onEdit={saved => void edit(saved)} onImport={openImport} onRefresh={refresh} onRunConsumed={consumeRun} />)}
+        : <ScenarioWorkspace workspace={workspace} scenarios={scenarios} selectedId={selectedId} busy={busy} runSaved={runSaved} onBusy={setBusy} onSelect={setSelectedId} onCreate={create} onEdit={saved => void edit(saved)} onImport={openImport} onRefresh={refresh} onReloadProject={reloadProject} onRunConsumed={consumeRun} />)}
       {pending && <RunInputModal key={pending.requestId} request={pending} scope={scope} bridge={bridge} onSubmitted={() => setPending(null)} onCancel={() => { setPending(null); workspace.cancel(); }} />}
       {importOpen && <div className="api-confirm-dialog-backdrop"><section className="api-confirm-dialog studio-import" role="dialog" aria-modal="true" aria-label="YAML 가져오기">
         <h2>YAML 가져오기</h2><p>이 페이지의 백엔드 명세에 연결합니다. 파일을 선택하거나 YAML을 붙여넣으세요.</p>

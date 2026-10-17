@@ -82,6 +82,7 @@ class OpenApiStudioElement extends HTMLElement {
     const attribute = (name: string) => this.getAttribute(name) ?? undefined;
     this.handle = init({
       element: this, specUrl: attribute("spec-url") ?? "",
+      scenariosUrl: attribute("scenarios-url"),
       storageKey: attribute("storage-key"), baseUrl: attribute("base-url"),
       serverName: attribute("server-name"), environmentName: attribute("environment-name"),
       credentials: attribute("credentials") as RequestCredentials | undefined,

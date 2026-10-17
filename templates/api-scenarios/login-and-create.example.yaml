@@ -1,0 +1,32 @@
+# 작성 예제입니다. 실제 명세에 맞게 수정한 다음 index.json에 등록하세요.
+# 이 예제는 로그인과 데이터 생성을 수행합니다. 명시적으로 실행할 때만 요청을 보냅니다.
+name: 로그인 후 항목 생성·조회
+description: 로그인 토큰과 생성한 항목 ID를 다음 단계에서 사용합니다.
+server: backend
+auth: globals.accessToken
+steps:
+  - name: 로그인
+    api: POST /auth/login
+    auth: none
+    inputs:
+      - { name: username, label: 테스트 계정 아이디 }
+      - { name: password, label: 테스트 계정 비밀번호 }
+    body:
+      username: "{{inputs.username}}"
+      password: "{{inputs.password}}"
+    expect:
+      - { source: status, operator: equals, value: 200 }
+    extract:
+      - { pointer: /accessToken, target: globals.accessToken }
+  - name: 항목 생성
+    api: POST /items
+    body:
+      name: 테스트 항목
+    expect:
+      - { source: status, operator: equals, value: 201 }
+  - name: 항목 조회
+    api: GET /items/{id}
+    pathParams:
+      id: "{{steps.2.response.body./id}}"
+    expect:
+      - { source: body, pointer: /name, operator: equals, value: 테스트 항목 }

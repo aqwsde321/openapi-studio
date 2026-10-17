@@ -86,6 +86,7 @@ PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium
 const studio = await OpenAPIStudio.init({
   element: "#openapi-studio",   // 선택자 또는 HTMLElement
   specUrl: "/v3/api-docs",
+  scenariosUrl: "./api-scenarios/index.json", // 선택: 페이지 URL 기준 프로젝트 시나리오 목록
   storageKey: "my-backend",
   baseUrl: undefined,           // 생략 시 servers[0] → 명세 origin
   serverName: "backend",        // YAML에 쓰이는 서버 이름
@@ -96,7 +97,9 @@ const studio = await OpenAPIStudio.init({
 studio.destroy();
 ```
 
-태그 속성은 같은 옵션의 kebab-case(`spec-url`, `storage-key`, `base-url`, `server-name`, `environment-name`, `credentials`, `mermaid`)입니다. 태그를 DOM에서 제거하면 `destroy()`가 호출됩니다.
+태그 속성은 같은 옵션의 kebab-case(`spec-url`, `scenarios-url`, `storage-key`, `base-url`, `server-name`, `environment-name`, `credentials`, `mermaid`)입니다. 태그를 DOM에서 제거하면 `destroy()`가 호출됩니다.
+
+프로젝트 시나리오 목록은 `{ "version": 1, "scenarios": [{ "file": "login.yaml" }] }` 형태입니다. 전체 목록을 읽은 후 메모리 목록을 교체하고 IndexedDB의 사용자 시나리오는 보존합니다. 로딩 오류는 화면에 표시하며 명세 문서는 계속 사용할 수 있습니다. 자세한 문법과 폴더 규약은 [시나리오 작성 가이드](docs/scenarios.md)를 참고하세요.
 
 `baseUrl` 해석 규칙:
 - 생략하면 OpenAPI `servers`의 첫 주소(변수 기본값 적용)를 쓰고, 없으면 명세를 제공한 서버의 origin을 씁니다. 상대 주소는 명세 URL 기준입니다.
