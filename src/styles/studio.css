@@ -25,6 +25,8 @@
 .openapi-studio .app-icon { vertical-align:middle; flex-shrink:0; }
 .openapi-studio .loading-spinner { display:inline-flex; gap:6px; align-items:center; }
 .openapi-studio .shared-resize-handle { cursor:col-resize; width:6px; }
+.openapi-studio .studio-local-folder { padding:12px 0; border-top:1px solid var(--api-border); }
+.openapi-studio .studio-local-folder p { font-size:12px; overflow-wrap:anywhere; }
 .openapi-studio .studio-spec-auth { width:min(440px,100%); margin:auto; padding:32px 20px; }
 .openapi-studio .studio-spec-auth h1 { font-size:22px; }
 .openapi-studio .studio-spec-auth code { display:block; overflow-wrap:anywhere; color:#6b7c8f; }

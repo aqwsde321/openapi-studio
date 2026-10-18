@@ -2,7 +2,7 @@ import { z } from "zod";
 import { stringifyScenario, type Scenario } from "../core/shared/scenario";
 import type { SavedApiScenario } from "../core/shared/workspace";
 
-const manifestSchema = z.object({
+export const manifestSchema = z.object({
   version: z.literal(1),
   scenarios: z.array(z.object({
     file: z.string().min(1),

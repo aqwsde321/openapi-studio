@@ -18,7 +18,8 @@ function operationForStep(step: Step, catalogs: Record<string, ApiCatalog | null
     : operation.path === step.api.path && operation.method.toUpperCase() === step.api.method);
 }
 
-export function ScenarioBuilder({ bindings, project, scope, bridge, onApply, value: draft, onChange: setDraft, onStepFocus, Markdown, saving = false, suppliedCatalogs, actions, metadata, globalRevision, onConfigureGlobal, catalogLoading = false }: {
+export function ScenarioBuilder({ bindings, project, scope, bridge, onApply, value: draft, onChange: setDraft, onStepFocus, Markdown, saving = false, suppliedCatalogs, actions, metadata, globalRevision, onConfigureGlobal, catalogLoading = false, saveLabel }: {
+  saveLabel?: string;
   globalRevision: number; onConfigureGlobal: (name: string) => void;
   suppliedCatalogs?: Record<string, ApiCatalog | null>; catalogLoading?: boolean;
   Markdown?: ComponentType<any>;
@@ -114,6 +115,6 @@ export function ScenarioBuilder({ bindings, project, scope, bridge, onApply, val
     {error && <p role="alert" className="api-warning">{error}</p>}
     </fieldset>
     <details onToggle={event => setYamlOpen(event.currentTarget.open)}><summary>간단한 YAML 보기</summary>{yamlOpen && <YamlCode label="작성 중인 시나리오 YAML" source={stringifyScenario(draft, false, step => operationForStep(step, catalogs, bindings), Object.fromEntries(project.servers.map(server => [server.id, server.name])))} />}</details>
-    <footer className="api-actions"><button type="submit" className="api-primary" disabled={saving || !draft.steps.length}>{saving ? "검사·저장 중…" : "시나리오 검사·저장"}</button>{actions}</footer>
+    <footer className="api-actions"><button type="submit" className="api-primary" disabled={saving || !draft.steps.length}>{saving ? "검사·저장 중…" : saveLabel ?? "시나리오 검사·저장"}</button>{actions}</footer>
   </form>;
 }

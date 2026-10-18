@@ -380,8 +380,9 @@ export function ApiDocumentation({ catalog, scope, bridge, baseUrl, busy, onBusy
     {composing && composeView === "edit" && <ScenarioSettingsSummary serverNames={Object.fromEntries(project.servers.map(server => [server.id, server.name]))} globalRevision={globalAccess.revision} onConfigureGlobal={globalAccess.open} scenario={draft} catalogs={composeCatalogs} projectId={scope.projectId} bridge={bridge} onSelect={setActiveStepId} />}
     {composing && <aside hidden={composeView !== "edit"} className="api-compose-editor" aria-label="Swagger 시나리오 작성" data-scroll="light" onChangeCapture={() => { setDirty(true); setNotice(""); }}>
       <div ref={editorFormHost}><ScenarioBuilder catalogLoading={composeCatalogLoading} globalRevision={globalAccess.revision} onConfigureGlobal={globalAccess.open} key={editorVersion} suppliedCatalogs={composeCatalogs} value={draft} onChange={changeDraft} Markdown={Markdown} onStepFocus={step => setActiveStepId(step.id)} saving={saving} bindings={{}} project={project} scope={scope} bridge={bridge}
+        saveLabel={initialEdit?.saved.localFile ? "프로젝트에 저장" : undefined}
         metadata={onSidebarGroupPathChange && <SidebarMetadataFields groupPath={sidebarGroupPath ?? []} existingGroupPaths={sidebarGroupPaths} disabled={saving} onGroupPathChange={value => { onSidebarGroupPathChange(value); setDirty(true); setNotice(""); }} />}
-        actions={onExecuteSaved && <button type="button" disabled={saving || !draft.steps.length} onClick={saveAndRun}>저장 후 실행</button>}
+        actions={onExecuteSaved && <button type="button" disabled={saving || !draft.steps.length} onClick={saveAndRun}>{initialEdit?.saved.localFile ? "프로젝트에 저장 후 실행" : "저장 후 실행"}</button>}
         onApply={async yaml => {
         const execute = runAfterSave.current;
         runAfterSave.current = false;
@@ -396,7 +397,7 @@ export function ApiDocumentation({ catalog, scope, bridge, baseUrl, busy, onBusy
           if (execute && checks.length) { setNotice("아래 항목을 먼저 해결해야 실행할 수 있어 저장하지 않았습니다."); return; }
           const item = await (preview.issues.length ? bridge.saveScenarioDraft : bridge.saveScenario)(scope, yaml, {}, saved?.id === preview.scenario.id ? saved.updatedAt : undefined, sidebarMetadata);
           setSaved(item); await onSaved?.(item); setDirty(false);
-          setNotice(preview.issues.length ? "초안으로 저장했습니다. 아래 항목을 보완하세요." : preview.executionIssues?.length ? "저장됨 · 실행 전 설정 필요. 아래 항목을 설정한 뒤 다시 검사하세요." : "시나리오를 저장했습니다. 이 화면에서 계속 수정할 수 있습니다.");
+          setNotice(item.localFile ? `프로젝트에 저장했습니다 · ${item.localFile}${preview.executionIssues?.length ? " · 실행 전 설정 필요" : ""}` : preview.issues.length ? "초안으로 저장했습니다. 아래 항목을 보완하세요." : preview.executionIssues?.length ? "저장됨 · 실행 전 설정 필요. 아래 항목을 설정한 뒤 다시 검사하세요." : "시나리오를 저장했습니다. 이 화면에서 계속 수정할 수 있습니다.");
           if (execute) onExecuteSaved?.(item);
         } catch (error) { setIssues([(error as Error).message]); }
         finally { setSaving(false); }

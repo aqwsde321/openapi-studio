@@ -7,6 +7,7 @@ export type ScenarioSidebarEntry = {
   groupPath?: string[];
   draft?: boolean;
   sourceUrl?: string;
+  localFile?: string;
 };
 
 type Props<T extends ScenarioSidebarEntry> = {
@@ -58,6 +59,7 @@ export function ScenarioSidebarTree<T extends ScenarioSidebarEntry>({ items, sel
     <button type="button" key={item.id} disabled={disabled} className={`api-sidebar-entry${selectedId === item.id ? " selected" : ""}${reasons?.has(item.id) ? " has-reason" : ""}`} onClick={() => onSelect(item)}>
       <strong>{item.name}</strong>
       {item.sourceUrl && <small className="api-sidebar-entry-meta">프로젝트 YAML</small>}
+      {item.localFile && <small className="api-sidebar-entry-meta">로컬 YAML</small>}
       {reasons?.has(item.id) && <small className="api-sidebar-entry-reason">검색 일치 · {reasons.get(item.id)}</small>}
       {warnings?.has(item.id) && <span className="api-sidebar-warning" role="img" aria-label={warnings.get(item.id)} title={warnings.get(item.id)} />}
       {item.draft && <span className="api-sidebar-entry-meta"><small className="api-sidebar-draft">초안</small></span>}

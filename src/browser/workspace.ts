@@ -8,17 +8,34 @@ import { StudioStorage } from "./storage";
 import type { resolveConfiguration } from "./config";
 import { pickYaml } from "./files";
 import { loadProjectScenarios } from "./project-scenarios";
+import { LocalScenarioFolder, type LocalDirectory } from "./local-scenarios";
 
 type Configuration = ReturnType<typeof resolveConfiguration>;
 export class BrowserWorkspace {
+  localFolder: LocalScenarioFolder | null = null;
   private projectScenarios: SavedApiScenario[] = [];
   private projectLoad: AbortController | null = null;
   active: AbortController | null = null;
   pending: { request: ApiScenarioInputRequest; resolve: (value: Json | undefined) => void } | null = null;
   constructor(readonly config: Configuration, readonly catalog: ApiCatalog, readonly storage: Pick<StudioStorage, "read" | "update" | "close">) {}
   private idle() { if (this.active) throw new Error("실행 중에는 설정을 변경할 수 없습니다"); }
+  async connectLocalFolder(directory: LocalDirectory): Promise<void> {
+    this.idle();
+    const folder = new LocalScenarioFolder(directory, source => this.normalize(source),
+      { [this.config.scope.serverId]: this.config.project.servers[0].name });
+    await folder.reload(); this.idle(); this.localFolder = folder;
+  }
+  disconnectLocalFolder() { this.idle(); this.localFolder = null; }
+  async saveToLocalFolder(saved: SavedApiScenario, filename: string): Promise<SavedApiScenario> {
+    this.idle();
+    if (!this.localFolder) throw new Error("먼저 로컬 폴더를 연결하세요");
+    const preview = await this.preview(saved.source);
+    if (saved.draft || preview.issues.length) throw new Error("초안과 보완이 필요한 시나리오는 수정·검사 후 저장하세요");
+    return this.localFolder.save(filename, saved.source, { groupPath: saved.groupPath ?? [], tags: saved.tags ?? [] });
+  }
   async reloadProjectScenarios(): Promise<void> {
     this.idle();
+    if (this.localFolder) { await this.localFolder.reload(); return; }
     if (!this.config.scenariosUrl) return;
     if (this.projectLoad) throw new Error("프로젝트 시나리오를 불러오는 중입니다");
     const controller = new AbortController(); this.projectLoad = controller;
@@ -31,6 +48,7 @@ export class BrowserWorkspace {
   }
   private writable(id: string) {
     if (id.startsWith("project:")) throw new Error("프로젝트 시나리오는 원본 YAML에서 수정하세요. 화면에서는 복제하여 브라우저에 저장할 수 있습니다.");
+    if (id.startsWith("local:")) throw new Error("로컬 파일은 연결한 폴더에서 관리하세요");
   }
   normalize(source: string): Scenario {
     if (new TextEncoder().encode(source).byteLength > 1_000_000) throw new Error("YAML은 1MB 이하만 지원합니다");
@@ -79,6 +97,13 @@ export class BrowserWorkspace {
     const preview = await this.preview(source);
     if (!draft && preview.issues.length) throw new Error(preview.issues.join("\n"));
     const scenario = preview.scenario;
+    if (scenario.id.startsWith("local:")) {
+      if (!this.localFolder) throw new Error("로컬 폴더 연결이 해제되었습니다. 다시 연결하세요");
+      if (draft || preview.issues.length) throw new Error("보완이 필요한 항목을 수정한 뒤 프로젝트에 저장하세요");
+      const previous = this.localFolder.items.find(item => item.id === scenario.id);
+      if (!previous || expectedUpdatedAt === undefined) throw new Error("로컬 시나리오를 다시 선택해서 수정하세요");
+      return this.localFolder.save(previous.localFile!, source, metadata ?? { groupPath: previous.groupPath, tags: previous.tags }, expectedUpdatedAt);
+    }
     this.writable(scenario.id);
     return this.storage.update(data => {
       const index = data.scenarios.findIndex(saved => saved.id === scenario.id);
@@ -136,7 +161,7 @@ export class BrowserWorkspace {
     setRequestAuth: async (_scope, name) => { this.idle(); await this.storage.update(data => { data.requestAuth = name; }); },
     getDocInputs: async () => (await this.storage.read()).docInputs,
     forgetDocInput: async (_scope, key) => { await this.storage.update(data => { delete data.docInputs[key]; }); },
-    listScenarios: async () => [...this.projectScenarios, ...(await this.storage.read()).scenarios],
+    listScenarios: async () => [...(this.localFolder?.items ?? this.projectScenarios), ...(await this.storage.read()).scenarios],
     previewScenario: async (_scope, source) => this.preview(source),
     saveScenario: async (_scope, source, _bindings, expected, metadata) => this.save(source, expected, false, metadata),
     saveScenarioDraft: async (_scope, source, _bindings, expected, metadata) => this.save(source, expected, true, metadata),

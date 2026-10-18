@@ -59,7 +59,7 @@ export type ApiEnvironmentScope = Pick<ApiScope, "projectId" | "environmentId">;
 export type ApiGlobal = { name: string; type: string; displayValue: string };
 /** Session cookie scope only; values never leave the main process. */
 export type ApiCookie = { name: string; domain: string; path: string };
-export type SavedApiScenario = { id: string; name: string; source: string; sourceUrl?: string; bindings: Record<string, string>; updatedAt: string; draft?: boolean; groupPath?: string[]; tags?: string[]; /** Old-title → new-title renames the user chose to keep as is. */ keptTitles?: Array<{ from: string; to: string }> };
+export type SavedApiScenario = { id: string; name: string; source: string; sourceUrl?: string; localFile?: string; bindings: Record<string, string>; updatedAt: string; draft?: boolean; groupPath?: string[]; tags?: string[]; /** Old-title → new-title renames the user chose to keep as is. */ keptTitles?: Array<{ from: string; to: string }> };
 /**
  * A project shared as one file: settings, scenarios and suites, plus each spec's URL, as written.
  * Never carries globals, saved docs accounts, cookies, remembered docs inputs or spec bodies.
