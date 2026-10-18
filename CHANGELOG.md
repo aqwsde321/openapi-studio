@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-10-18
+
 ### 추가
 - 로컬 시나리오 폴더를 연결해 기존 YAML 수정과 브라우저 시나리오의 파일 저장·목록 등록을 지원합니다. 외부 수정 충돌 및 부분 저장 오류를 안내하며 서버 저장 API 없이 개인 폴더에서 동작합니다.
 - `scenarios-url` / `scenariosUrl`로 프로젝트 YAML 목록을 연결하고 실행·재로딩·브라우저 사본 만들기를 지원합니다. 프로젝트 파일은 읽기 전용이며 기존 브라우저 시나리오는 보존합니다.
@@ -74,7 +76,8 @@
 - OpenAPI 3.0/3.1, 백엔드 1개, JSON 요청 본문만 지원합니다.
 - 한 페이지에 Studio 하나만 사용할 수 있습니다.
 
-[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/aqwsde321/openapi-studio/compare/v0.1.4...v0.1.5
